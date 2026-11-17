@@ -33,3 +33,10 @@
 # Ignore key files for decrypting credentials and more.
 /config/*.key
 
+
+# Test artifacts
+/coverage
+/spec/examples.txt
+
+# Local, per-developer settings (may contain passwords)
+/mise.local.toml

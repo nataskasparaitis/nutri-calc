@@ -1,40 +1,55 @@
-# SQLite. Versions 3.8.0 and up are supported.
-#   gem install sqlite3
+# MySQL. Versions 5.6.4 and up are supported.
 #
-#   Ensure the SQLite 3 gem is defined in your Gemfile
-#   gem "sqlite3"
+# Connection settings come from environment variables so that no password is
+# ever committed to git. For local development, set them in your shell, e.g.:
+#
+#   export DB_USERNAME=root
+#   export DB_PASSWORD=...
+#
+# Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
+# for a full overview on how database connection configuration can be specified.
 #
 default: &default
-  adapter: sqlite3
+  adapter: mysql2
+  encoding: utf8mb4
+  collation: utf8mb4_unicode_ci
   max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  timeout: 5000
+  username: <%= ENV.fetch("DB_USERNAME") { "root" } %>
+  password: <%= ENV.fetch("DB_PASSWORD") { "" } %>
+  host: <%= ENV.fetch("DB_HOST") { "127.0.0.1" } %>
+  port: <%= ENV.fetch("DB_PORT") { 3306 } %>
+  variables:
+    # Reject invalid data (e.g. too-long strings, bad dates) instead of silently truncating it.
+    sql_mode: TRADITIONAL
 
 development:
   <<: *default
-  database: storage/development.sqlite3
+  database: nutri_calc_development
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: storage/test.sqlite3
+  database: nutri_calc_test
 
-# Store production database in the storage/ directory, which by default
-# is mounted as a persistent Docker volume in config/deploy.yml.
+# In production, provide the password via the NUTRI_CALC_DATABASE_PASSWORD
+# environment variable (or a full DATABASE_URL). Never store it in this file.
 production:
-  primary:
+  primary: &primary_production
     <<: *default
-    database: storage/production.sqlite3
+    database: nutri_calc_production
+    username: nutri_calc
+    password: <%= ENV["NUTRI_CALC_DATABASE_PASSWORD"] %>
   cache:
-    <<: *default
-    database: storage/production_cache.sqlite3
+    <<: *primary_production
+    database: nutri_calc_production_cache
     migrations_paths: db/cache_migrate
   queue:
-    <<: *default
-    database: storage/production_queue.sqlite3
+    <<: *primary_production
+    database: nutri_calc_production_queue
     migrations_paths: db/queue_migrate
   cable:
-    <<: *default
-    database: storage/production_cable.sqlite3
+    <<: *primary_production
+    database: nutri_calc_production_cable
     migrations_paths: db/cable_migrate
