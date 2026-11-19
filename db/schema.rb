@@ -34,7 +34,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_150955) do
   end
 
   create_table "items", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
-    t.string "photo_url", limit: 2048, collation: "utf8mb4_bin"
+    t.bigint "creator_id"
+    t.string "image_url", limit: 2048, collation: "utf8mb4_bin"
     t.string "name", limit: 191, null: false
     t.decimal "calories_per_100g", precision: 7, scale: 2, null: false
     t.decimal "fat_per_100g", precision: 7, scale: 2, null: false
@@ -46,6 +47,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_150955) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.virtual "active", type: :integer, limit: 1, as: "if(isnull(`deleted_at`),1,NULL)"
+    t.index ["creator_id"], name: "fk_items_creator_id"
     t.index ["name", "active"], name: "idx_name_active", unique: true
   end
 
@@ -83,6 +85,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_150955) do
   add_foreign_key "food_log_entries", "items", name: "fk_food_log_entries_item_id"
   add_foreign_key "food_log_entries", "recipes", name: "fk_food_log_entries_recipe_id", on_delete: :cascade
   add_foreign_key "food_log_entries", "users", name: "fk_food_log_entries_user_id", on_delete: :cascade
+  add_foreign_key "items", "users", column: "creator_id", name: "fk_items_creator_id", on_delete: :nullify
   add_foreign_key "recipe_items", "items", name: "fk_recipe_items_item_id"
   add_foreign_key "recipe_items", "recipes", name: "fk_recipe_items_recipe_id", on_delete: :cascade
   add_foreign_key "recipes", "users", name: "fk_recipes_user_id", on_delete: :cascade
