@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_19_150955) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_22_175525) do
   create_table "favorite_items", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "item_id", null: false
@@ -37,12 +37,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_150955) do
     t.bigint "creator_id"
     t.string "image_url", limit: 2048, collation: "utf8mb4_bin"
     t.string "name", limit: 191, null: false
-    t.decimal "calories_per_100g", precision: 7, scale: 2, null: false
-    t.decimal "fat_per_100g", precision: 7, scale: 2, null: false
-    t.decimal "carbohydrate_per_100g", precision: 7, scale: 2, null: false
-    t.decimal "fiber_per_100g", precision: 7, scale: 2, null: false
-    t.decimal "protein_per_100g", precision: 7, scale: 2, null: false
-    t.decimal "salt_per_100g", precision: 7, scale: 2, null: false
+    t.decimal "calories_per_100g", precision: 5, scale: 2, null: false
+    t.decimal "fat_per_100g", precision: 5, scale: 2, null: false
+    t.decimal "carbohydrate_per_100g", precision: 5, scale: 2, null: false
+    t.decimal "fiber_per_100g", precision: 5, scale: 2, null: false
+    t.decimal "protein_per_100g", precision: 5, scale: 2, null: false
+    t.decimal "salt_per_100g", precision: 5, scale: 2, null: false
     t.datetime "deleted_at", precision: nil
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
