@@ -7,6 +7,9 @@ gem "mysql2", "~> 0.5"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 
+# Generates initialize and .for/.run/.with for service classes in app/domain [https://github.com/vinted/interactor-initializer]
+gem "interactor-initializer", "~> 1.2"
+
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 gem "bcrypt", "~> 3.1.7"
 

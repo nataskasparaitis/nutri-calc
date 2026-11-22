@@ -6,7 +6,7 @@ class User < ApplicationRecord
   has_many :food_log_entries
   has_many :created_items, class_name: "Item", foreign_key: :creator_id, inverse_of: :creator
 
-  normalizes :nickname, with: ->(nickname) { Sanitize.sanitize_text(nickname) }
+  normalizes :nickname, with: ->(nickname) { Sanitize::Text.for(nickname) }
 
   validates :nickname,
     presence: true,
