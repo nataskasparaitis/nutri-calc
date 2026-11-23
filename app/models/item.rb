@@ -2,7 +2,7 @@ class Item < ApplicationRecord
   NAME_MAX_LENGTH = 191
   IMAGE_URL_MAX_LENGTH = 2048
   IMAGE_URL_FORMAT = /\A#{URI::DEFAULT_PARSER.make_regexp(%w[http https])}\z/
-  MAX_CALORIES_PER_100G = 999
+  MAX_CALORIES_PER_100G = 999.99
   GRAMS_PER_100G = %i[fat_per_100g carbohydrate_per_100g fiber_per_100g protein_per_100g salt_per_100g].freeze
 
   belongs_to :creator, class_name: "User", optional: true, inverse_of: :created_items
