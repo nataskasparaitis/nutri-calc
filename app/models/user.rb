@@ -4,6 +4,7 @@ class User < ApplicationRecord
 
   has_secure_password
 
+  has_many :sessions
   has_many :recipes
   has_many :favorite_items
   has_many :food_log_entries

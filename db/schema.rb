@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_25_154516) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_25_171700) do
   create_table "favorite_items", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "item_id", null: false
@@ -71,6 +71,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_25_154516) do
     t.index ["user_id", "name", "active"], name: "idx_user_id_name_active", unique: true
   end
 
+  create_table "sessions", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "ip_address", limit: 45
+    t.string "user_agent"
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
+    t.index ["user_id"], name: "idx_user_id"
+  end
+
   create_table "users", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "email", limit: 254, null: false
     t.string "nickname", limit: 191, null: false
@@ -91,4 +100,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_25_154516) do
   add_foreign_key "recipe_items", "items", name: "fk_recipe_items_item_id"
   add_foreign_key "recipe_items", "recipes", name: "fk_recipe_items_recipe_id", on_delete: :cascade
   add_foreign_key "recipes", "users", name: "fk_recipes_user_id", on_delete: :cascade
+  add_foreign_key "sessions", "users", name: "fk_sessions_user_id", on_delete: :cascade
 end
