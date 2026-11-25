@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_23_170013) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_25_154516) do
   create_table "favorite_items", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "item_id", null: false
@@ -72,11 +72,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_23_170013) do
   end
 
   create_table "users", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.string "email", limit: 254, null: false
     t.string "nickname", limit: 191, null: false
     t.string "password_digest", limit: 191, null: false, collation: "utf8mb4_bin"
     t.boolean "admin", default: false, null: false
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.index ["email"], name: "idx_email", unique: true
     t.index ["nickname"], name: "idx_nickname", unique: true
   end
 
