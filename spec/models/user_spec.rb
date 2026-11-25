@@ -12,7 +12,148 @@ RSpec.describe User do
     end
   end
 
+  shared_examples "invalid email format" do
+    it { is_expected.not_to be_valid }
+
+    it "explains that the format is wrong" do
+      user.valid?
+      expect(user.errors[:email]).to include("must have a valid format")
+    end
+  end
+
   it { is_expected.to be_valid }
+
+  describe "email" do
+    context "when it is missing" do
+      [ nil, "", "   " ].each do |blank|
+        context "when it is #{blank.inspect}" do
+          before { user.email = blank }
+
+          it "says it can't be blank" do
+            user.valid?
+            expect(user.errors).to be_of_kind(:email, :blank)
+          end
+        end
+      end
+    end
+
+    context "when it is valid" do
+      %w[natas@example.com natas+food@example.com first.last@sub.example.co.uk].each do |good|
+        context "when it is #{good}" do
+          before { user.email = good }
+
+          it { is_expected.to be_valid }
+        end
+      end
+    end
+
+    [
+      "natas.example.com",
+      "na@tas@example.com",
+      "na tas@example.com",
+      "natas@",
+      "@example.com",
+      "jos\u00E9@example.com"
+    ].each do |bad|
+      context "when it is #{bad.inspect}" do
+        before { user.email = bad }
+
+        it_behaves_like "invalid email format"
+      end
+    end
+
+    context "when it is exactly the maximum length" do
+      before { user.email = email_with_length(described_class::EMAIL_MAX_LENGTH) }
+
+      it { is_expected.to be_valid }
+
+      it "can be saved" do
+        expect { user.save! }.not_to raise_error
+      end
+    end
+
+    context "when it is one character too long" do
+      before { user.email = email_with_length(described_class::EMAIL_MAX_LENGTH + 1) }
+
+      it "says it is too long" do
+        user.valid?
+        expect(user.errors).to be_of_kind(:email, :too_long)
+      end
+    end
+
+    describe "normalization" do
+      it "strips spaces and lowercases it" do
+        user.email = "  Natas@Example.COM  "
+        expect(user.email).to eq("natas@example.com")
+      end
+
+      it "removes invisible characters" do
+        user.email = "na\u200Btas@example.com"
+        expect(user.email).to eq("natas@example.com")
+      end
+
+      it "finds the user whatever case is used" do
+        user.email = "natas@example.com"
+        user.save!
+        expect(described_class.find_by(email: "NATAS@Example.com")).to eq(user)
+      end
+    end
+
+    describe "uniqueness" do
+      before { create(:user, email: "natas@example.com") }
+
+      context "when the same email is taken" do
+        before { user.email = "natas@example.com" }
+
+        it "says it is taken" do
+          user.valid?
+          expect(user.errors).to be_of_kind(:email, :taken)
+        end
+      end
+
+      context "when it differs only by case" do
+        before { user.email = "NATAS@example.com" }
+
+        it "says it is taken" do
+          user.valid?
+          expect(user.errors).to be_of_kind(:email, :taken)
+        end
+      end
+
+      context "when validations are skipped" do
+        before { user.email = "natas@example.com" }
+
+        it "is still blocked by the database index" do
+          expect { user.save!(validate: false) }.to raise_error(ActiveRecord::RecordNotUnique)
+        end
+      end
+    end
+
+    context "when validations are skipped and it is missing" do
+      before { user.email = nil }
+
+      it "is still required by the database" do
+        expect { user.save!(validate: false) }.to raise_error(ActiveRecord::NotNullViolation)
+      end
+    end
+
+    it "is hidden when the user is inspected" do
+      user.email = "natas@example.com"
+      expect(user.inspect).to include("email: [FILTERED]")
+    end
+
+    def email_with_length(length)
+      local_part = "a" * 64
+      domain_length = length - local_part.length - 1
+      labels = []
+      while domain_length > 63
+        labels << "b" * 63
+        domain_length -= 64
+      end
+      labels << "b" * domain_length
+      "#{local_part}@#{labels.join(".")}"
+    end
+  end
 
   describe "nickname" do
     context "when it is valid" do

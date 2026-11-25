@@ -1,4 +1,7 @@
 class User < ApplicationRecord
+  EMAIL_MAX_LENGTH = 254
+  EMAIL_FORMAT = URI::MailTo::EMAIL_REGEXP
+
   has_secure_password
 
   has_many :recipes
@@ -6,7 +9,14 @@ class User < ApplicationRecord
   has_many :food_log_entries
   has_many :created_items, class_name: "Item", foreign_key: :creator_id, inverse_of: :creator
 
+  normalizes :email, with: ->(email) { Sanitize::Text.for(email).downcase }
   normalizes :nickname, with: ->(nickname) { Sanitize::Text.for(nickname) }
+
+  validates :email,
+    presence: true,
+    length: { maximum: EMAIL_MAX_LENGTH },
+    uniqueness: true,
+    format: { with: EMAIL_FORMAT, message: "must have a valid format", allow_blank: true }
 
   validates :nickname,
     presence: true,
