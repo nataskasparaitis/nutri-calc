@@ -398,6 +398,7 @@ RSpec.describe User do
   end
 
   describe "associations" do
+    it { is_expected.to have_many(:sessions) }
     it { is_expected.to have_many(:recipes) }
     it { is_expected.to have_many(:favorite_items) }
     it { is_expected.to have_many(:food_log_entries) }
