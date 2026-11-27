@@ -3,12 +3,17 @@ class ApplicationController < ActionController::API
   include Authentication
 
   rescue_from ActionController::ParameterMissing, with: :parameter_missing_handler
+  rescue_from ActiveRecord::RecordInvalid, with: :record_invalid_handler
   rescue_from Users::Errors::InvalidCredentials, with: :invalid_credentials_handler
 
   private
 
   def parameter_missing_handler(exception)
     render_validation_error(base: exception.message)
+  end
+
+  def record_invalid_handler(exception)
+    render_validation_error(exception.record.errors.messages)
   end
 
   def invalid_credentials_handler
