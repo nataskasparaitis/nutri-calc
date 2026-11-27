@@ -1,29 +1,32 @@
 require "rails_helper"
 
-RSpec.describe "Sessions" do
+RSpec.describe "Api::V1::Sessions" do
   include ActiveSupport::Testing::TimeHelpers
 
   let(:password) { "top-secret-password" }
   let!(:user) { create(:user, email: "natas@example.com", password: password) }
 
   def log_in(email: user.email, password: self.password, **options)
-    post session_path, params: { email: email, password: password }, as: :json, **options
+    post api_v1_session_path, params: { email: email, password: password }, as: :json, **options
   end
 
-  def user_json(user)
-    { "id" => user.id, "email" => user.email, "nickname" => user.nickname, "admin" => user.admin }
+  def user_response(user)
+    {
+      "code" => 0,
+      "user" => { "id" => user.id, "email" => user.email, "nickname" => user.nickname, "admin" => user.admin }
+    }
   end
 
   def set_cookie_header
     response.headers["set-cookie"].to_s
   end
 
-  describe "POST /session" do
+  describe "POST /api/v1/session" do
     context "when the email and password are right" do
       it "returns the user" do
         log_in
         expect(response).to have_http_status(:created)
-        expect(response.parsed_body).to eq(user_json(user))
+        expect(response.parsed_body).to eq(user_response(user))
       end
 
       it "never returns the password hash" do
@@ -77,7 +80,7 @@ RSpec.describe "Sessions" do
     shared_examples "rejected login" do
       it "says the email or password is wrong" do
         expect(response).to have_http_status(:unauthorized)
-        expect(response.parsed_body).to eq("error" => "Invalid email or password")
+        expect(response.parsed_body).to eq("code" => 120, "message" => "Invalid email or password")
       end
 
       it "does not create a session or set a cookie" do
@@ -112,8 +115,9 @@ RSpec.describe "Sessions" do
     }.each do |description, params|
       context "when #{description}" do
         it "says the request is bad" do
-          post session_path, params: params, as: :json
+          post api_v1_session_path, params: params, as: :json
           expect(response).to have_http_status(:bad_request)
+          expect(response.parsed_body).to include("code" => 99, "message" => "Validation failed")
           expect(Session.count).to eq(0)
         end
       end
@@ -145,7 +149,7 @@ RSpec.describe "Sessions" do
         it "blocks the 11th, even with the right password" do
           log_in
           expect(response).to have_http_status(:too_many_requests)
-          expect(response.parsed_body).to eq("error" => "Too many login attempts, try again later")
+          expect(response.parsed_body).to eq("code" => 121, "message" => "Too many attempts, try again later")
           expect(Session.count).to eq(0)
         end
 
@@ -169,28 +173,28 @@ RSpec.describe "Sessions" do
 
       it "does not limit the other session endpoints" do
         log_in
-        11.times { get session_path }
+        11.times { get api_v1_session_path }
         expect(response).to have_http_status(:ok)
       end
     end
   end
 
-  describe "GET /session" do
+  describe "GET /api/v1/session" do
     context "when logged in" do
       before { log_in }
 
       it "returns the current user" do
-        get session_path
+        get api_v1_session_path
         expect(response).to have_http_status(:ok)
-        expect(response.parsed_body).to eq(user_json(user))
+        expect(response.parsed_body).to eq(user_response(user))
       end
     end
 
     shared_examples "not logged in" do
       it "says you must be logged in" do
-        get session_path
+        get api_v1_session_path
         expect(response).to have_http_status(:unauthorized)
-        expect(response.parsed_body).to eq("error" => "You must be logged in")
+        expect(response.parsed_body).to eq("code" => 100, "message" => "Unauthorized")
       end
     end
 
@@ -235,49 +239,49 @@ RSpec.describe "Sessions" do
     end
   end
 
-  describe "DELETE /session" do
+  describe "DELETE /api/v1/session" do
     context "when logged in" do
       before { log_in }
 
       it "logs out" do
-        delete session_path
+        delete api_v1_session_path
         expect(response).to have_http_status(:no_content)
         expect(response.body).to be_empty
       end
 
       it "deletes the session" do
-        expect { delete session_path }.to change(Session, :count).by(-1)
+        expect { delete api_v1_session_path }.to change(Session, :count).by(-1)
       end
 
       it "clears the cookie" do
-        delete session_path
+        delete api_v1_session_path
         expect(set_cookie_header).to include("session_id=;", "max-age=0")
       end
 
       it "makes the next request unauthorized" do
-        delete session_path
-        get session_path
+        delete api_v1_session_path
+        get api_v1_session_path
         expect(response).to have_http_status(:unauthorized)
       end
 
       it "makes a copy of the old cookie useless" do
         old_cookie = cookies[:session_id]
-        delete session_path
+        delete api_v1_session_path
         cookies[:session_id] = old_cookie
-        get session_path
+        get api_v1_session_path
         expect(response).to have_http_status(:unauthorized)
       end
 
       it "keeps the user's sessions on other devices" do
         other_device = create(:session, user: user)
-        delete session_path
+        delete api_v1_session_path
         expect(Session.exists?(other_device.id)).to be(true)
       end
     end
 
     context "when not logged in" do
       it "says you must be logged in" do
-        delete session_path
+        delete api_v1_session_path
         expect(response).to have_http_status(:unauthorized)
       end
     end

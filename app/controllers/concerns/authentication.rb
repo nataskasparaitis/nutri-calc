@@ -28,7 +28,11 @@ module Authentication
   end
 
   def request_authentication
-    render json: { error: "You must be logged in" }, status: :unauthorized
+    render json: {
+      code: Api::ResponseCodes::UNAUTHORIZED,
+      message: "Unauthorized"
+    },
+    status: :unauthorized
   end
 
   def start_new_session_for(user)
