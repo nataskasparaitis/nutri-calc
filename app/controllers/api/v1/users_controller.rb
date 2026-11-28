@@ -22,4 +22,11 @@ class Api::V1::UsersController < ApplicationController
     },
     status: :created
   end
+
+  def destroy
+    Users::Destroy.for(user: Current.user, id: params.expect(:id))
+    terminate_session
+
+    head :no_content
+  end
 end

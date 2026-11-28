@@ -157,4 +157,103 @@ RSpec.describe "Api::V1::Users" do
       end
     end
   end
+
+  describe "DELETE /api/v1/users/:id" do
+    let!(:user) { create(:user, email: "natas@example.com", password: "top-secret-password") }
+    let!(:other_user) { create(:user) }
+
+    def log_in
+      post api_v1_session_path, params: { email: "natas@example.com", password: "top-secret-password" }, as: :json
+    end
+
+    context "when deleting your own account" do
+      before { log_in }
+
+      it "responds with no content" do
+        delete api_v1_user_path(user)
+        expect(response).to have_http_status(:no_content)
+        expect(response.body).to be_empty
+      end
+
+      it "deletes only that user" do
+        expect { delete api_v1_user_path(user) }.to change(User, :count).by(-1)
+        expect(User.exists?(user.id)).to be(false)
+      end
+
+      it "deletes the user's sessions on every device" do
+        create(:session, user: user)
+        expect { delete api_v1_user_path(user) }.to change(Session, :count).from(2).to(0)
+      end
+
+      it "clears the cookie" do
+        delete api_v1_user_path(user)
+        expect(set_cookie_header).to include("session_id=;", "max-age=0")
+      end
+
+      it "makes the next request unauthorized" do
+        delete api_v1_user_path(user)
+        get api_v1_session_path
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    shared_examples "forbidden deletion" do
+      it "says access is denied" do
+        expect(response).to have_http_status(:forbidden)
+        expect(response.parsed_body).to eq("code" => 106, "message" => "Access denied")
+      end
+
+      it "does not delete anyone and keeps you logged in" do
+        expect(User.count).to eq(2)
+        get api_v1_session_path
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
+    context "when deleting someone else's account" do
+      before do
+        log_in
+        delete api_v1_user_path(other_user)
+      end
+
+      it_behaves_like "forbidden deletion"
+    end
+
+    context "when the user does not exist" do
+      before do
+        log_in
+        delete api_v1_user_path(id: 999_999_999)
+      end
+
+      it_behaves_like "forbidden deletion"
+    end
+
+    context "when you are an admin" do
+      before do
+        user.update!(admin: true)
+        log_in
+        delete api_v1_user_path(other_user)
+      end
+
+      it_behaves_like "forbidden deletion"
+    end
+
+    context "when the id is not a number" do
+      before { log_in }
+
+      it "does not find the route" do
+        delete "/api/v1/users/abc"
+        expect(response).to have_http_status(:not_found)
+        expect(User.count).to eq(2)
+      end
+    end
+
+    context "when not logged in" do
+      it "says you must be logged in and deletes nothing" do
+        expect { delete api_v1_user_path(user) }.not_to change(User, :count)
+        expect(response).to have_http_status(:unauthorized)
+        expect(response.parsed_body).to eq("code" => 100, "message" => "Unauthorized")
+      end
+    end
+  end
 end

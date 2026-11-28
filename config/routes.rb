@@ -11,7 +11,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resource :session, only: %i[show create destroy]
-      resources :users, only: :create
+      resources :users, only: %i[create destroy], constraints: { id: /\d+/ }
     end
   end
 end
