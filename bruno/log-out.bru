@@ -1,0 +1,17 @@
+meta {
+  name: Log out
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/session
+  body: none
+  auth: none
+}
+
+tests {
+  test("logs out", function () {
+    expect(res.getStatus()).to.equal(204);
+  });
+}

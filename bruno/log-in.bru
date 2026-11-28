@@ -1,0 +1,30 @@
+meta {
+  name: Log in
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/v1/session
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "{{email}}",
+    "password": "{{password}}"
+  }
+}
+
+tests {
+  test("logs in", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().code).to.equal(0);
+    expect(res.getBody().user.email).to.equal(bru.getVar("email"));
+  });
+}
+
+docs {
+  Logs in as the user made by **Register**. Change the email or password in the body to see the 401 with code 120.
+}
