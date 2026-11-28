@@ -5,8 +5,17 @@ class ApplicationController < ActionController::API
   rescue_from ActionController::ParameterMissing, with: :parameter_missing_handler
   rescue_from ActiveRecord::RecordInvalid, with: :record_invalid_handler
   rescue_from Users::Errors::InvalidCredentials, with: :invalid_credentials_handler
+  rescue_from Users::Errors::AccessDenied, with: :access_denied_handler
 
   private
+
+  def access_denied_handler
+    render json: {
+      code: Api::ResponseCodes::ACCESS_DENIED,
+      message: "Access denied"
+    },
+    status: :forbidden
+  end
 
   def parameter_missing_handler(exception)
     render_validation_error(base: exception.message)
