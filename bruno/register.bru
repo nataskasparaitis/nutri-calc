@@ -1,0 +1,37 @@
+meta {
+  name: Register
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/users
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "{{email}}",
+    "nickname": "{{nickname}}",
+    "password": "{{password}}"
+  }
+}
+
+script:pre-request {
+  const id = Date.now();
+  bru.setVar("email", `user${id}@example.com`);
+  bru.setVar("nickname", `user${id}`);
+}
+
+tests {
+  test("creates the user and logs them in", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().code).to.equal(0);
+    expect(res.getBody().user.email).to.equal(bru.getVar("email"));
+  });
+}
+
+docs {
+  Signs up with a new email and nickname each time, and logs the new user in.
+}

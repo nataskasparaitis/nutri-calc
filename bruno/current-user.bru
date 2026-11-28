@@ -1,0 +1,23 @@
+meta {
+  name: Current user
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/session
+  body: none
+  auth: none
+}
+
+tests {
+  test("returns the logged in user", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().code).to.equal(0);
+    expect(res.getBody().user.email).to.equal(bru.getVar("email"));
+  });
+}
+
+docs {
+  Needs the login cookie from **Register** or **Log in**. Without it you get 401 with code 100.
+}
