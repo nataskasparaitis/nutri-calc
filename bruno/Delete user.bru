@@ -1,0 +1,21 @@
+meta {
+  name: Delete user
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/users/{{userId}}
+  body: none
+  auth: none
+}
+
+tests {
+  test("deletes the account", function () {
+      expect(res.getStatus()).to.equal(204);
+    });
+}
+
+docs {
+  Deletes the user made by **Register**. Change the id in the URL to someone else's to see the 403 with code 106.
+}

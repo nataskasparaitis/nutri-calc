@@ -24,6 +24,10 @@ script:pre-request {
   bru.setVar("nickname", `user${id}`);
 }
 
+script:post-response {
+  bru.setVar("userId", res.getBody().user.id);
+}
+
 tests {
   test("creates the user and logs them in", function () {
     expect(res.getStatus()).to.equal(201);
